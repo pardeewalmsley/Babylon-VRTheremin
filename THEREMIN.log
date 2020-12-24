@@ -1,0 +1,147 @@
+Exporter version: 6.4.6, Blender version: 2.83.5
+========= Conversion from Blender to Babylon.js =========
+	Scene settings used :
+		Inline textures     :  false
+		Material Type       :  PBR
+		Positions Precision :  4
+		Normals Precision   :  3
+		UVs Precision       :  3
+		Vert Color Precision:  3
+		Mat Weight Precision:  2
+		Keep Z-up r-handed  :  no
+		Texture directory   :  /Users/alexanderwalmsley/Documents/Design_Development/Eisenstein/Babylon_Theremin/
+			processing env texture environment.env
+	Python World class constructor completed
+	processing begun of mesh:  PitchAntenna
+		processing begun of material:  Stainless steel
+		num positions      :  651
+		num normals        :  651
+		num tangents       :  0
+		num uvs            :  1302
+		num uvs2           :  0
+		num colors         :  0
+		num triangles      :  316
+	processing begun of mesh:  VolumeAntenna
+		processing begun of material:  Stainless steel
+		registered as also a user of material:  Stainless steel
+		num positions      :  2496
+		num normals        :  2496
+		num tangents       :  0
+		num uvs            :  4992
+		num uvs2           :  0
+		num colors         :  0
+		num triangles      :  4608
+	processing begun of mesh:  Box
+		processing begun of material:  Polished wood
+			processing texture WoodFineDark004_COL_3K
+				texture type:  diffuseTexture, mapped using: "UVMap"
+		num positions      :  955
+		num normals        :  955
+		num tangents       :  0
+		num uvs            :  1910
+		num uvs2           :  0
+		num colors         :  0
+		num triangles      :  428
+	processing begun of mesh:  Dial_1
+		processing begun of material:  Stainless steel
+		processing begun of material:  White Plastic
+		processing begun of material:  Black Plastic
+		registered as also a user of material:  Stainless steel
+		processing begun of multimaterial:  THEREMIN.Multimaterial#0
+		num positions      :  637
+		num normals        :  637
+		num tangents       :  0
+		num uvs            :  1274
+		num uvs2           :  0
+		num colors         :  0
+		num triangles      :  278
+	processing begun of mesh:  On_Off
+		processing begun of material:  Black Plastic
+		registered as also a user of material:  Black Plastic
+		num positions      :  158
+		num normals        :  158
+		num tangents       :  0
+		num uvs            :  316
+		num uvs2           :  0
+		num colors         :  0
+		num triangles      :  68
+	processing begun of mesh:  Headphone Jack
+		processing begun of material:  Stainless steel
+		registered as also a user of material:  Stainless steel
+		num positions      :  1175
+		num normals        :  1175
+		num tangents       :  0
+		num uvs            :  2350
+		num uvs2           :  0
+		num colors         :  0
+		num triangles      :  508
+	processing begun of mesh:  Dial_2
+		processing begun of material:  Stainless steel
+		processing begun of material:  White Plastic
+		processing begun of material:  Black Plastic
+		registered as also a user of material:  Stainless steel
+		registered as also a user of material:  White Plastic
+		registered as also a user of material:  Black Plastic
+		processing begun of multimaterial:  THEREMIN.Multimaterial#1
+		num positions      :  638
+		num normals        :  638
+		num tangents       :  0
+		num uvs            :  1276
+		num uvs2           :  0
+		num colors         :  0
+		num triangles      :  278
+	processing begun of mesh:  Dial_3
+		processing begun of material:  Stainless steel
+		processing begun of material:  White Plastic
+		processing begun of material:  Black Plastic
+		registered as also a user of material:  Stainless steel
+		registered as also a user of material:  White Plastic
+		registered as also a user of material:  Black Plastic
+		processing begun of multimaterial:  THEREMIN.Multimaterial#2
+		num positions      :  637
+		num normals        :  637
+		num tangents       :  0
+		num uvs            :  1274
+		num uvs2           :  0
+		num colors         :  0
+		num triangles      :  278
+	processing begun of mesh:  Dial_4
+		processing begun of material:  Stainless steel
+		processing begun of material:  White Plastic
+		processing begun of material:  Black Plastic
+		registered as also a user of material:  Stainless steel
+		registered as also a user of material:  White Plastic
+		registered as also a user of material:  Black Plastic
+		processing begun of multimaterial:  THEREMIN.Multimaterial#3
+		num positions      :  636
+		num normals        :  636
+		num tangents       :  0
+		num uvs            :  1272
+		num uvs2           :  0
+		num colors         :  0
+		num triangles      :  278
+	processing begun of camera (UniversalCamera):  Camera
+	processing begun of mesh:  Floor
+		processing begun of material:  Black Plastic
+		registered as also a user of material:  Black Plastic
+		num positions      :  4
+		num normals        :  4
+		num tangents       :  0
+		num uvs            :  8
+		num uvs2           :  0
+		num colors         :  0
+		num triangles      :  2
+========= Writing of JSON file started =========
+	writing mesh:  PitchAntenna
+	writing mesh:  VolumeAntenna
+	writing mesh:  Box
+	writing mesh:  Dial_1
+	writing mesh:  On_Off
+	writing mesh:  Headphone Jack
+	writing mesh:  Dial_2
+	writing mesh:  Dial_3
+	writing mesh:  Dial_4
+	writing mesh:  Floor
+========= Writing of JSON file completed =========
+========= end of processing =========
+elapsed time:  0 min, 0.3713 secs

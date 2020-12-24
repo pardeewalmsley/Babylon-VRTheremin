@@ -1,0 +1,144 @@
+<!-- babylon-webxr/index.html -->
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Babylon WebXR Demo</title>
+
+    <!-- Embed latest version of Babylon.js. -->
+    <script src="https://cdn.babylonjs.com/babylon.js"></script>
+
+    <!-- Embed Babylon loader scripts for .gltf and other filetypes. -->
+    <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+
+    <!-- Embed pep.js for consistent cross-browser pointer events. -->
+    <script src="https://code.jquery.com/pep/0.4.3/pep.js"></script>
+
+    <style>
+      html, body {
+        overflow: hidden;
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      #render-canvas {
+        width: 100%;
+        height: 100%;
+        touch-action: none;
+      }
+    </style>
+
+  </head>
+
+  <body>
+    <canvas id="render-canvas"></canvas>
+
+    <!-- Our Babylon.js implementation. -->
+    <script>
+      // Identify canvas element to script.
+      const canvas = document.getElementById('render-canvas');
+
+      // Initialize Babylon.js variables.
+      let engine,
+          scene,
+          sceneToRender;
+      const createDefaultEngine = function () {
+        return new BABYLON.Engine(canvas, true, {
+          preserveDrawingBuffer: true,
+          stencil: true
+        });
+      };
+
+      // Create scene and create XR experience.
+      const createScene = async function () {
+
+        // Create a basic Babylon XR scene
+        let scene = new BABYLON.Scene(engine);
+        let camera = new BABYLON.FreeCamera('camera-1', new BABYLON.Vector3(0, 5, -10), scene);
+        camera.setTarget(BABYLON.Vector3.Zero());
+        camera.attachControl(canvas, true);
+
+        let light = new BABYLON.HemisphericLight('light-1', new BABYLON.Vector3(0, 1, 0), scene);
+        light.intensity = 0.5;
+
+        BABYLON.SceneLoader.Append("", "THEREMIN.babylon", scene);
+
+        // Initialize XR experience with default experience helper.
+        const xr = await scene.createDefaultXRExperienceAsync({
+          floorMeshes: [scene.getMeshByName("Floor")]
+          });
+
+        var pitchAntenna = scene.getMeshByName("PitchAntenna");
+        //console.log(pitchAntenna.position);
+
+        //// THEREMIN
+
+        // Create new Audio Context
+        var context = new AudioContext();
+            mousedown = false;
+            oscillator = null;
+
+        // Calculate frequency relative to PitchAntenna (x=0.18)
+        var calculateFrequency = function (controllerXPosition) {
+          var minFrequency = 20;
+              maxFrequency = 2000;
+
+          return ((controllerXPosition / window.innerWidth) * maxFrequency) + minFrequency;
+        };
+
+        // Oscillator controls
+        scene.onPointerObservable.add((pointerInfo) => {
+            switch (pointerInfo.type) {
+                case BABYLON.PointerEventTypes.POINTERDOWN:
+                  mousedown = true;
+                  oscillator = context.createOscillator();
+                  oscillator.frequency.setTargetAtTime(calculateFrequency(scene.pointerX), context.currentTime, 0.01);
+                  oscillator.connect(context.destination);
+                  oscillator.start(context.currentTime);
+                    break;
+                case BABYLON.PointerEventTypes.POINTERUP:
+                  mousedown = false;
+                  if (oscillator) {
+                    oscillator.stop(context.currentTime);
+                    oscillator.disconnect();
+                  }
+                    break;
+                case BABYLON.PointerEventTypes.POINTERMOVE:
+                if (mousedown) {
+                  oscillator.frequency.setTargetAtTime(calculateFrequency(scene.pointerX), context.currentTime, 0.01);
+                }
+                  break;
+            }
+        });
+
+        return scene;
+      };
+
+      // Create engine.
+      engine = createDefaultEngine();
+      if (!engine) {
+        throw 'Engine should not be null';
+      }
+
+      // Create scene.
+      scene = createScene();
+      scene.then(function (returnedScene) {
+        sceneToRender = returnedScene;
+      });
+
+      // Run render loop to render future frames.
+      engine.runRenderLoop(function () {
+        if (sceneToRender) {
+          sceneToRender.render();
+        }
+      });
+
+      // Handle browser resize.
+      window.addEventListener('resize', function () {
+        engine.resize();
+      });
+
+    </script>
+  </body>
+</html>
