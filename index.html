@@ -69,8 +69,12 @@
           floorMeshes: [scene.getMeshByName("Floor")]
           });
 
+        // Get the features manager
+        const fm = xr.baseExperience.featuresManager;
+
+        // Get location of antennae
         var pitchAntenna = scene.getMeshByName("PitchAntenna");
-        //console.log(pitchAntenna.position);
+        var volumeAntenna = scene.getMeshByName("VolumeAntenna");
 
         //// THEREMIN
 
@@ -79,17 +83,28 @@
             mousedown = false;
             oscillator = null;
 
-        // Calculate frequency relative to PitchAntenna (x=0.18)
-        var calculateFrequency = function (controllerXPosition) {
+        var pitchAntennaPosition = pitchAntenna.position;
+        var volumeAntennaPosition = volumeAntenna.position;
+        //console.log(pitchAntennaPosition);
+
+        // Calculate frequency relative to PitchAntenna
+        var calculateFrequency = function (distance) {
           var minFrequency = 20;
               maxFrequency = 2000;
 
-          return ((controllerXPosition / window.innerWidth) * maxFrequency) + minFrequency;
+          var pitchSensetivity = 10;
+
+          return (Math.exp(-distance * pitchSensetivity) * (maxFrequency - minFrequency)) + minFrequency;
         };
 
         // Oscillator controls
         scene.onPointerObservable.add((pointerInfo) => {
-            switch (pointerInfo.type) {
+
+          const meshId = pointerInfo.event.pointerId;
+          const xrInput = xr.pointerSelection.getXRControllerByPointerId(meshId);
+          const motionController = xrInput.grip;
+
+          switch (pointerInfo.type) {
                 case BABYLON.PointerEventTypes.POINTERDOWN:
                   mousedown = true;
                   oscillator = context.createOscillator();
@@ -105,8 +120,10 @@
                   }
                     break;
                 case BABYLON.PointerEventTypes.POINTERMOVE:
+                var rootPos = motionController._absolutePosition;
+                var pitchDistance = BABYLON.Vector3.DistanceSquared(rootPos, pitchAntennaPosition);
                 if (mousedown) {
-                  oscillator.frequency.setTargetAtTime(calculateFrequency(scene.pointerX), context.currentTime, 0.01);
+                  oscillator.frequency.setTargetAtTime(calculateFrequency(pitchDistance), context.currentTime, 0.01);
                 }
                   break;
             }
@@ -114,6 +131,14 @@
 
         return scene;
       };
+
+      /*function onPointerMove(xr, evt) {
+          const meshId = evt.event.pointerId;
+          const xrInput = xr.pointerSelection.getXRControllerByPointerId(meshId);
+          const motionController = xrInput.grip;
+          var rootPos = motionController._absolutePosition;
+          return rootPos;
+      }*/
 
       // Create engine.
       engine = createDefaultEngine();
