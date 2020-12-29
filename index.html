@@ -114,9 +114,6 @@
           const xrInputRight = xr.pointerSelection.getXRControllerByPointerId(meshId);
           const xrInputLeft = xr.pointerSelection.getXRControllerByPointerId(meshId+1);
 
-          const motionControllerRight = xrInputRight.grip;
-          const motionControllerLeft = xrInputLeft.grip;
-
           switch (pointerInfo.type) {
                 case BABYLON.PointerEventTypes.POINTERDOWN:
                   mousedown = true;
@@ -134,16 +131,18 @@
                   }
                     break;
                 case BABYLON.PointerEventTypes.POINTERMOVE:
-                    var rootPosRight = motionControllerRight._absolutePosition;
+                  if (mousedown) {
+                    var rootPosRight = xrInputRight.grip._absolutePosition;
                     var pitchDistance = BABYLON.Vector3.DistanceSquared(rootPosRight, pitchAntennaPosition);
-                    var rootPosLeft = motionControllerLeft._absolutePosition;
+                    var rootPosLeft = xrInputLeft.grip._absolutePosition;
                     var volumeDistance = BABYLON.Vector3.DistanceSquared(rootPosLeft, volumeAntennaPosition);
 
-                    if (mousedown) {
-                        oscillator.frequency.setTargetAtTime(calculateFrequency(pitchDistance), context.currentTime, 0.01);
-                        gainNode.gain.setTargetAtTime(calculateGain(volumeDistance), context.currentTime, 0.01);
-                    }
-                  break;
+                    oscillator.frequency.setTargetAtTime(calculateFrequency(pitchDistance), context.currentTime, 0.01);
+                    gainNode.gain.setTargetAtTime(calculateGain(volumeDistance), context.currentTime, 0.01);
+                  } else {
+                    // Do nothing
+                  }
+                break;
             }
         });
 
