@@ -55,14 +55,21 @@
 
         // Create a basic Babylon XR scene
         let scene = new BABYLON.Scene(engine);
-        let camera = new BABYLON.FreeCamera('camera-1', new BABYLON.Vector3(0, 5, -10), scene);
-        camera.setTarget(BABYLON.Vector3.Zero());
+        let camera = new BABYLON.FreeCamera('camera-1', new BABYLON.Vector3(0, 2, -1), scene);
+        camera.setTarget(new BABYLON.Vector3(0, 0, 1.6));
         camera.attachControl(canvas, true);
 
         let light = new BABYLON.HemisphericLight('light-1', new BABYLON.Vector3(0, 1, 0), scene);
-        light.intensity = 0.5;
+        light.intensity = 1;
 
-        BABYLON.SceneLoader.Append("", "THEREMIN.babylon", scene);
+        var pitchAntennaPosition = new BABYLON.Vector3();
+        var volumeAntennaPosition = new BABYLON.Vector3();
+
+        BABYLON.SceneLoader.ImportMesh("", "", "THEREMIN.babylon", scene, function() {
+          // Get location of antennae
+          pitchAntennaPosition = scene.getMeshByName("PitchAntenna").position;
+          volumeAntennaPosition = scene.getMeshByName("VolumeAntenna").position;
+        });
 
         // Initialize XR experience with default experience helper.
         const xr = await scene.createDefaultXRExperienceAsync({
@@ -70,11 +77,7 @@
           });
 
         // Get the features manager
-        const fm = xr.baseExperience.featuresManager;
-
-        // Get location of antennae
-        var pitchAntenna = scene.getMeshByName("PitchAntenna");
-        var volumeAntenna = scene.getMeshByName("VolumeAntenna");
+        //const fm = xr.baseExperience.featuresManager;
 
         //// THEREMIN
 
@@ -82,34 +85,45 @@
         var context = new AudioContext();
             mousedown = false;
             oscillator = null;
-
-        var pitchAntennaPosition = pitchAntenna.position;
-        var volumeAntennaPosition = volumeAntenna.position;
-        //console.log(pitchAntennaPosition);
+            gainNode = context.createGain();
 
         // Calculate frequency relative to PitchAntenna
         var calculateFrequency = function (distance) {
           var minFrequency = 20;
               maxFrequency = 2000;
 
-          var pitchSensetivity = 10;
+          var pitchSensitivity = 10;
 
-          return (Math.exp(-distance * pitchSensetivity) * (maxFrequency - minFrequency)) + minFrequency;
+          return (Math.exp(-distance * pitchSensitivity) * (maxFrequency - minFrequency)) + minFrequency;
         };
+
+        var calculateGain = function (distance) {
+          var minGain = 0;
+              maxGain = 1;
+
+          var gainSensitivity = 10;
+
+          return (Math.exp(-distance * gainSensitivity) * (maxGain - minGain)) + minGain;
+        }
 
         // Oscillator controls
         scene.onPointerObservable.add((pointerInfo) => {
 
           const meshId = pointerInfo.event.pointerId;
-          const xrInput = xr.pointerSelection.getXRControllerByPointerId(meshId);
-          const motionController = xrInput.grip;
+
+          const xrInputRight = xr.pointerSelection.getXRControllerByPointerId(meshId);
+          const xrInputLeft = xr.pointerSelection.getXRControllerByPointerId(meshId+1);
+
+          const motionControllerRight = xrInputRight.grip;
+          const motionControllerLeft = xrInputLeft.grip;
 
           switch (pointerInfo.type) {
                 case BABYLON.PointerEventTypes.POINTERDOWN:
                   mousedown = true;
                   oscillator = context.createOscillator();
                   oscillator.frequency.setTargetAtTime(calculateFrequency(scene.pointerX), context.currentTime, 0.01);
-                  oscillator.connect(context.destination);
+                  oscillator.connect(gainNode);
+                  gainNode.connect(context.destination);
                   oscillator.start(context.currentTime);
                     break;
                 case BABYLON.PointerEventTypes.POINTERUP:
@@ -120,25 +134,21 @@
                   }
                     break;
                 case BABYLON.PointerEventTypes.POINTERMOVE:
-                var rootPos = motionController._absolutePosition;
-                var pitchDistance = BABYLON.Vector3.DistanceSquared(rootPos, pitchAntennaPosition);
-                if (mousedown) {
-                  oscillator.frequency.setTargetAtTime(calculateFrequency(pitchDistance), context.currentTime, 0.01);
-                }
+                    var rootPosRight = motionControllerRight._absolutePosition;
+                    var pitchDistance = BABYLON.Vector3.DistanceSquared(rootPosRight, pitchAntennaPosition);
+                    var rootPosLeft = motionControllerLeft._absolutePosition;
+                    var volumeDistance = BABYLON.Vector3.DistanceSquared(rootPosLeft, volumeAntennaPosition);
+
+                    if (mousedown) {
+                        oscillator.frequency.setTargetAtTime(calculateFrequency(pitchDistance), context.currentTime, 0.01);
+                        gainNode.gain.setTargetAtTime(calculateGain(volumeDistance), context.currentTime, 0.01);
+                    }
                   break;
             }
         });
 
         return scene;
       };
-
-      /*function onPointerMove(xr, evt) {
-          const meshId = evt.event.pointerId;
-          const xrInput = xr.pointerSelection.getXRControllerByPointerId(meshId);
-          const motionController = xrInput.grip;
-          var rootPos = motionController._absolutePosition;
-          return rootPos;
-      }*/
 
       // Create engine.
       engine = createDefaultEngine();
