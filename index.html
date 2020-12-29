@@ -59,8 +59,10 @@
         camera.setTarget(new BABYLON.Vector3(0, 0, 1.6));
         camera.attachControl(canvas, true);
 
-        let light = new BABYLON.HemisphericLight('light-1', new BABYLON.Vector3(0, 1, 0), scene);
-        light.intensity = 1;
+        let light = new BABYLON.SpotLight("spotLight", new BABYLON.Vector3(0, 2, 0), new BABYLON.Vector3(0, -1, 0), Math.PI, 5, scene);
+        light.intensity = 10;
+
+        scene.clearColor = BABYLON.Color3.Black();
 
         var pitchAntennaPosition = new BABYLON.Vector3();
         var volumeAntennaPosition = new BABYLON.Vector3();
