@@ -103,7 +103,7 @@
           var minGain = 0;
               maxGain = 1;
 
-          var gainSensitivity = 10;
+          var gainSensitivity = 20;
 
           return (Math.exp(-distance * gainSensitivity) * (maxGain - minGain)) + minGain;
         }
