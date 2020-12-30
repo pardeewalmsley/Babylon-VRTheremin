@@ -55,7 +55,7 @@
 
         // Create a basic Babylon XR scene
         let scene = new BABYLON.Scene(engine);
-        let camera = new BABYLON.FreeCamera('camera-1', new BABYLON.Vector3(0, 2, -1), scene);
+        let camera = new BABYLON.FreeCamera('camera-1', new BABYLON.Vector3(0, 2, -0.5), scene);
         camera.setTarget(new BABYLON.Vector3(0, 0, 1.6));
         camera.attachControl(canvas, true);
 
