@@ -2,7 +2,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Babylon WebXR Demo</title>
+    <title>Babylon WebXR Theremin</title>
 
     <!-- Embed latest version of Babylon.js. -->
     <script src="https://cdn.babylonjs.com/babylon.js"></script>
@@ -66,12 +66,40 @@
 
         var pitchAntennaPosition = new BABYLON.Vector3();
         var volumeAntennaPosition = new BABYLON.Vector3();
+        var onOffButton = new BABYLON.Mesh();
+        var dial4 = new BABYLON.Mesh();
+        var dial3 = new BABYLON.Mesh();
+        var dial2 = new BABYLON.Mesh();
+        var dial1 = new BABYLON.Mesh();
+        var einAus = new BABYLON.Mesh();
+        var dial4Text = new BABYLON.Mesh();
+        var dial3Text = new BABYLON.Mesh();
+        var dial2Text = new BABYLON.Mesh();
+        var dial1Text = new BABYLON.Mesh();
 
         BABYLON.SceneLoader.ImportMesh("", "", "THEREMIN.babylon", scene, function() {
           // Get location of antennae
           pitchAntennaPosition = scene.getMeshByName("PitchAntenna").position;
           volumeAntennaPosition = scene.getMeshByName("VolumeAntenna").position;
+          onOffButton = scene.getMeshByName("On_Off");
+          dial4 = scene.getMeshByName("Dial_4");
+          dial3 = scene.getMeshByName("Dial_3");
+          dial2 = scene.getMeshByName("Dial_2");
+          dial1 = scene.getMeshByName("Dial_1");
+          einAus = scene.getMeshByName("Ein_Aus");
+          dial4Text = scene.getMeshByName("Dial4Text");
+          dial3Text = scene.getMeshByName("Dial3Text");
+          dial2Text = scene.getMeshByName("Dial2Text");
+          dial1Text = scene.getMeshByName("Dial1Text");
+          einAus.setEnabled(false);
+          dial4Text.setEnabled(false);
+          dial3Text.setEnabled(false);
+          dial2Text.setEnabled(false);
+          dial1Text.setEnabled(false);
         });
+
+        // Add highlight layer
+        var hl = new BABYLON.HighlightLayer("hl1", scene);
 
         // Initialize XR experience with default experience helper.
         const xr = await scene.createDefaultXRExperienceAsync({
@@ -105,7 +133,7 @@
 
           var gainSensitivity = 20;
 
-          return (Math.exp(-distance * gainSensitivity) * (maxGain - minGain)) + minGain;
+          return (Math.exp(-distance * gainSensitivity) * (minGain - maxGain)) + maxGain;
         }
 
         // Oscillator controls
@@ -116,17 +144,19 @@
           const xrInputRight = xr.pointerSelection.getXRControllerByPointerId(200);
           const xrInputLeft = xr.pointerSelection.getXRControllerByPointerId(201);
 
+          var pickResult = pointerInfo.pickInfo;
+
           switch (pointerInfo.type) {
                 case BABYLON.PointerEventTypes.POINTERDOWN:
-                  context.resume().then(() => {
-                    mousedown = true;
-                    oscillator = context.createOscillator();
-                    oscillator.frequency.setTargetAtTime(calculateFrequency(scene.pointerX), context.currentTime, 0.01);
-                    oscillator.connect(gainNode);
-                    gainNode.connect(context.destination);
-                    oscillator.start(context.currentTime);
-                  });
-                    break;
+                    context.resume().then(() => {
+                      mousedown = true;
+                      oscillator = context.createOscillator();
+                      oscillator.frequency.setTargetAtTime(calculateFrequency(scene.pointerX), context.currentTime, 0.01);
+                      oscillator.connect(gainNode);
+                      gainNode.connect(context.destination);
+                      oscillator.start(context.currentTime);
+                    });
+                  break;
                 case BABYLON.PointerEventTypes.POINTERUP:
                   mousedown = false;
                   if (oscillator) {
@@ -144,8 +174,41 @@
                     oscillator.frequency.setTargetAtTime(calculateFrequency(pitchDistance), context.currentTime, 0.01);
                     gainNode.gain.setTargetAtTime(calculateGain(volumeDistance), context.currentTime, 0.01);
                   } else {
-                    // Do nothing
                   }
+
+                  // Control panel hover events
+                    if(pickResult.hit && pickResult.pickedMesh.id == "On_Off") {
+                      hl.addMesh(onOffButton, BABYLON.Color3.Green());
+                      hl.addMesh(einAus, BABYLON.Color3.Green());
+                      einAus.setEnabled(true);
+                    } else if(pickResult.hit && pickResult.pickedMesh.id == "Dial_4"){
+                      hl.addMesh(dial4, BABYLON.Color3.Green());
+                      hl.addMesh(dial4Text, BABYLON.Color3.Green());
+                      dial4Text.setEnabled(true);
+                    } else if(pickResult.hit && pickResult.pickedMesh.id == "Dial_3"){
+                      hl.addMesh(dial3, BABYLON.Color3.Green());
+                      hl.addMesh(dial3Text, BABYLON.Color3.Green());
+                      dial3Text.setEnabled(true);
+                    } else if(pickResult.hit && pickResult.pickedMesh.id == "Dial_2"){
+                      hl.addMesh(dial2, BABYLON.Color3.Green());
+                      hl.addMesh(dial2Text, BABYLON.Color3.Green());
+                      dial2Text.setEnabled(true);
+                    } else if(pickResult.hit && pickResult.pickedMesh.id == "Dial_1"){
+                      hl.addMesh(dial1, BABYLON.Color3.Green());
+                      hl.addMesh(dial1Text, BABYLON.Color3.Green());
+                      dial1Text.setEnabled(true);
+                    } else {
+                      hl.removeMesh(onOffButton);
+                      einAus.setEnabled(false);
+                      hl.removeMesh(dial4);
+                      dial4Text.setEnabled(false);
+                      hl.removeMesh(dial3);
+                      dial3Text.setEnabled(false);
+                      hl.removeMesh(dial2);
+                      dial2Text.setEnabled(false);
+                      hl.removeMesh(dial1);
+                      dial1Text.setEnabled(false);
+                    }
                 break;
             }
         });

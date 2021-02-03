@@ -34,6 +34,8 @@ Exporter version: 6.4.6, Blender version: 2.83.5
 	processing begun of mesh:  Box
 		processing begun of material:  Polished wood
 			processing texture WoodFineDark004_COL_3K
+				WARNING: Exception during copy:
+					[Errno 2] No such file or directory: '/Users/alexanderwalmsley/Documents/Design_Development/Eisenstein/Other/../Documents/Design_Development/Eisenstein/Unity_Theremin/Wood_Texture/WoodFineDark004_COL_3K.jpg'
 				texture type:  diffuseTexture, mapped using: "UVMap"
 		num positions      :  955
 		num normals        :  955
@@ -131,6 +133,55 @@ Exporter version: 6.4.6, Blender version: 2.83.5
 		num uvs2           :  0
 		num colors         :  0
 		num triangles      :  2
+	processing begun of mesh:  Ein_Aus
+		processing begun of material:  Highlight
+		num positions      :  326
+		num normals        :  326
+		num tangents       :  0
+		num uvs            :  652
+		num uvs2           :  0
+		num colors         :  0
+		num triangles      :  312
+	processing begun of mesh:  Dial4Text
+		processing begun of material:  Highlight
+		registered as also a user of material:  Highlight
+		num positions      :  304
+		num normals        :  304
+		num tangents       :  0
+		num uvs            :  608
+		num uvs2           :  0
+		num colors         :  0
+		num triangles      :  293
+	processing begun of mesh:  Dial3Text
+		processing begun of material:  Highlight
+		registered as also a user of material:  Highlight
+		num positions      :  431
+		num normals        :  431
+		num tangents       :  0
+		num uvs            :  862
+		num uvs2           :  0
+		num colors         :  0
+		num triangles      :  423
+	processing begun of mesh:  Dial2Text
+		processing begun of material:  Highlight
+		registered as also a user of material:  Highlight
+		num positions      :  373
+		num normals        :  373
+		num tangents       :  0
+		num uvs            :  746
+		num uvs2           :  0
+		num colors         :  0
+		num triangles      :  365
+	processing begun of mesh:  Dial1Text
+		processing begun of material:  Highlight
+		registered as also a user of material:  Highlight
+		num positions      :  288
+		num normals        :  288
+		num tangents       :  0
+		num uvs            :  576
+		num uvs2           :  0
+		num colors         :  0
+		num triangles      :  280
 ========= Writing of JSON file started =========
 	writing mesh:  PitchAntenna
 	writing mesh:  VolumeAntenna
@@ -142,6 +193,11 @@ Exporter version: 6.4.6, Blender version: 2.83.5
 	writing mesh:  Dial_3
 	writing mesh:  Dial_4
 	writing mesh:  Floor
+	writing mesh:  Ein_Aus
+	writing mesh:  Dial4Text
+	writing mesh:  Dial3Text
+	writing mesh:  Dial2Text
+	writing mesh:  Dial1Text
 ========= Writing of JSON file completed =========
 ========= end of processing =========
-elapsed time:  0 min, 0.5547 secs
+elapsed time:  0 min, 0.4561 secs
