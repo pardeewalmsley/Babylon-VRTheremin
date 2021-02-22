@@ -14,8 +14,8 @@ const createDefaultEngine = function () {
 const createScene = async function () {
     // Create a basic Babylon XR scene
     let scene = new BABYLON.Scene(engine);
-    let camera = new BABYLON.FreeCamera('camera-1', new BABYLON.Vector3(0, 1.4, -1.2), scene);
-    camera.setTarget(new BABYLON.Vector3(0, 1.4, 0));
+    let camera = new BABYLON.FreeCamera('camera-1', new BABYLON.Vector3(0, 1.3, -1.2), scene);
+    // camera.setTarget(new BABYLON.Vector3(0, 0, 1.6));
     camera.attachControl(canvas, true);
 
     let hemisphericLight = new BABYLON.HemisphericLight('light1', new BABYLON.Vector3(0, 10, 0), scene);
@@ -37,49 +37,59 @@ const createScene = async function () {
         volumeAntennaPosition = scene.getMeshByName('VolumeAntenna').position;
     });
 
-    // VIDEO SEQUENCE ON PLANE
-    var videoPlane = BABYLON.MeshBuilder.CreatePlane('plane', { width: 8, height: 4.5 }, scene);
-    videoPlane.position = new BABYLON.Vector3(0, 2, 6);
-
-    var videoMaterial = new BABYLON.StandardMaterial('texture1', scene);
-    // videoMaterial.emissiveColor = new BABYLON.Color3(1, 1, 1);
-
-    var videoTexture = new BABYLON.VideoTexture('video', './data/video/farmersspring.mp4', scene, true);
-    videoTexture.video.muted = true;
-    videoMaterial.diffuseTexture = videoTexture;
-    videoMaterial.emissiveColor = new BABYLON.Color3.White();
-    videoPlane.material = videoMaterial;
-
-    videoTexture.video.play();
-
     // WEBCAM Video
     let pose;
     let poseNet;
     var myVideo; // Our Webcam stream (a DOM <video>)
     var isAssigned = false; // Is the Webcam stream assigned to material?
 
+    var plane1 = BABYLON.Mesh.CreatePlane('plane1', 7, scene);
+    plane1.rotation.z = Math.PI;
+    plane1.position = new BABYLON.Vector3(0, 0, 6);
+
+    var videoMaterial = new BABYLON.StandardMaterial('texture1', scene);
+    videoMaterial.emissiveColor = new BABYLON.Color3(1, 1, 1);
+
     // Create our video texture
-    // BABYLON.VideoTexture.CreateFromWebCam(
-    //     scene,
-    //     function (videoTexture) {
-    //         myVideo = videoTexture;
-    //         videoMaterial.diffuseTexture = myVideo;
-    //     },
-    //     { maxWidth: 256, maxHeight: 256 }
-    // );
+    BABYLON.VideoTexture.CreateFromWebCam(
+        scene,
+        function (videoTexture) {
+            myVideo = videoTexture;
+            videoMaterial.diffuseTexture = myVideo;
+        },
+        { maxWidth: 256, maxHeight: 256 }
+    );
 
-    // // Create a new poseNet method
-    //             poseNet = ml5.poseNet(myVideo.video, modelLoaded);
+    // When there is a video stream (!=undefined),
+    // check if it's ready          (readyState == 4),
+    // before applying videoMaterial to avoid the Chrome console warning.
+    // [.Offscreen-For-WebGL-0xa957edd000]RENDER WARNING: there is no texture bound to the unit 0
+    scene.onBeforeRenderObservable.add(function () {
+        if (myVideo !== undefined && isAssigned == false) {
+            if (myVideo.video.readyState == 4) {
+                plane1.material = videoMaterial;
+                isAssigned = true;
 
-    //             // When the model is loaded
-    //             function modelLoaded() {
-    //                 console.log('Model Loaded!');
-    //             }
-    //             // Listen to new 'pose' events
-    //             poseNet.on('pose', function (results) {
-    //                 if (results.length > 0) {
-    //                     // console.log(results[0].pose);
-    //                     pose = results[0].pose;
+                // Create a new poseNet method
+                poseNet = ml5.poseNet(myVideo.video, modelLoaded);
+
+                // When the model is loaded
+                function modelLoaded() {
+                    console.log('Model Loaded!');
+                }
+                // Listen to new 'pose' events
+                poseNet.on('pose', function (results) {
+                    if (results.length > 0) {
+                        // console.log(results[0].pose);
+                        pose = results[0].pose;
+                    }
+                });
+            }
+        }
+        if (pose) {
+            // console.log(pose.nose.x);
+        }
+    });
 
     // SPHERES
     let sphereLeft = BABYLON.Mesh.CreateSphere('sphereLeft', 16, 0.1);
