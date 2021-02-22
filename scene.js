@@ -21,7 +21,7 @@ const createScene = async function () {
     let hemisphericLight = new BABYLON.HemisphericLight('light1', new BABYLON.Vector3(0, 10, 0), scene);
     hemisphericLight.intensity = 1;
     let light = new BABYLON.PointLight('spotLight', new BABYLON.Vector3(0, 1.2, -0.2), scene);
-    light.intensity = 0.5;
+    light.intensity = 0.2;
 
     scene.clearColor = new BABYLON.Color3(0.1, 0.1, 0.1);
     // scene.fogMode = BABYLON.Scene.FOGMODE_EXP;
@@ -37,7 +37,7 @@ const createScene = async function () {
         volumeAntennaPosition = scene.getMeshByName('VolumeAntenna').position;
     });
 
-    // VIDEO SEQUENCE ON PLANE
+    // ------- FILM CLIP ON PLANE -------
     var videoPlane = BABYLON.MeshBuilder.CreatePlane('plane', { width: 8, height: 4.5 }, scene);
     videoPlane.position = new BABYLON.Vector3(0, 2, 6);
 
@@ -52,38 +52,43 @@ const createScene = async function () {
 
     videoTexture.video.play();
 
-    // WEBCAM Video
-    let pose;
+    // ------- WEBCAM VIDEO + ML POSE RECOGNITION -------
+
+    let poses = [];
     let poseNet;
-    var myVideo; // Our Webcam stream (a DOM <video>)
-    var isAssigned = false; // Is the Webcam stream assigned to material?
 
-    // Create our video texture
-    // BABYLON.VideoTexture.CreateFromWebCam(
-    //     scene,
-    //     function (videoTexture) {
-    //         myVideo = videoTexture;
-    //         videoMaterial.diffuseTexture = myVideo;
-    //     },
-    //     { maxWidth: 256, maxHeight: 256 }
-    // );
+    // based on https://github.com/AnnaKap/facefun/blob/master/index.html
+    let video = document.createElement('video');
+    let vidDiv = document.getElementById('video');
+    video.setAttribute('width', 255);
+    video.setAttribute('height', 255);
+    video.autoplay = true;
+    vidDiv.appendChild(video);
 
-    // // Create a new poseNet method
-    //             poseNet = ml5.poseNet(myVideo.video, modelLoaded);
+    // get the users webcam stream to render in the video
+    navigator.mediaDevices
+        .getUserMedia({ video: true, audio: false })
+        .then(function (stream) {
+            video.srcObject = stream;
+        })
+        .catch(function (err) {
+            console.log('An error occurred! ' + err);
+        });
 
-    //             // When the model is loaded
-    //             function modelLoaded() {
-    //                 console.log('Model Loaded!');
-    //             }
-    //             // Listen to new 'pose' events
-    //             poseNet.on('pose', function (results) {
-    //                 if (results.length > 0) {
-    //                     // console.log(results[0].pose);
-    //                     pose = results[0].pose;
+    let options = {
+        flipHorizontal: true,
+        minConfidence: 0.7,
+    };
 
-    // SPHERES
+    poseNet = ml5.poseNet(video, options, modelReady);
+
+    function modelReady() {
+        console.log('model Loaded');
+    }
+
+    // ------- SPHERES -------
     let sphereLeft = BABYLON.Mesh.CreateSphere('sphereLeft', 16, 0.1);
-    sphereLeft.position.x = -0.2;
+    sphereLeft.position.x = -0.32;
     sphereLeft.position.y = 1.1;
     sphereLeft.position.z = -0.1;
     let sphereLeftMat = new BABYLON.StandardMaterial('sphereMat', scene);
@@ -91,118 +96,21 @@ const createScene = async function () {
     sphereLeft.material = sphereLeftMat;
 
     let sphereRight = BABYLON.Mesh.CreateSphere('sphereRight', 16, 0.1);
-    sphereRight.position.x = 0.2;
+    sphereRight.position.x = 0.17;
     sphereRight.position.y = 1.1;
     sphereRight.position.z = -0.1;
     let sphereRightMat = new BABYLON.StandardMaterial('sphereMat', scene);
     sphereRightMat.diffuseColor = new BABYLON.Color3(0.5, 0.5, 1);
     sphereRight.material = sphereRightMat;
 
-    //// THEREMIN
-
-    // Create new Audio Context
-    var context = new AudioContext();
-    mousedown = false;
-    oscillator = context.createOscillator();
-    gainNode = context.createGain();
-
-    // Calculate frequency relative to PitchAntenna
-    var calculateFrequency = function (distance) {
-        var minFrequency = 20;
-        maxFrequency = 1000;
-
-        var pitchSensitivity = 1;
-        let freq = Math.exp(-distance * pitchSensitivity) * (maxFrequency - minFrequency) + minFrequency;
-        return freq;
-    };
-
-    var calculateGain = function (distance) {
-        var minGain = 0;
-        maxGain = 1;
-
-        var gainSensitivity = 10;
-
-        return Math.exp(-distance * gainSensitivity) * (maxGain - minGain) + minGain;
-    };
-
-    // Oscillator controls
-    scene.onPointerObservable.add((pointerInfo) => {
-        switch (pointerInfo.type) {
-            case BABYLON.PointerEventTypes.POINTERDOWN:
-                context.resume().then(() => {
-                    mousedown = true;
-                    // oscillator = context.createOscillator();
-                    oscillator.frequency.setTargetAtTime(calculateFrequency(scene.pointerX), context.currentTime, 0.01);
-                    oscillator.connect(gainNode);
-                    gainNode.connect(context.destination);
-                    oscillator.start(context.currentTime);
-                });
-                break;
+    // Listen to new 'pose' events
+    poseNet.on('pose', function (results) {
+        if (results.length > 0) {
+            poses = results[0].pose;
+            // console.log(poses.rightWrist.x);
+            sphereLeft.position.y = map(poses.leftWrist.y, 255, 0, 0.8, 1.8);
+            sphereRight.position.x = map(poses.rightWrist.x, 100, 255, 0.05, 0.8);
         }
-    });
-
-    // JOYSTICK
-    var leftJoystick = new BABYLON.VirtualJoystick(true, {
-        position: { x: document.body.clientWidth * 0.25, y: document.body.clientHeight - 200 },
-        alwaysVisible: true,
-    });
-    leftJoystick.setJoystickColor('#FFFFFF');
-    leftJoystick.setJoystickSensibility(0.1);
-
-    var rightJoystick = new BABYLON.VirtualJoystick(false, {
-        position: { x: document.body.clientWidth * 0.75, y: document.body.clientHeight - 200 },
-        alwaysVisible: true,
-    });
-    rightJoystick.setJoystickColor('#FFFFFF');
-    rightJoystick.setJoystickSensibility(0.1);
-
-    BABYLON.VirtualJoystick.Canvas.style.zIndex = '4';
-
-    //  Oscillator controls
-    scene.onBeforeRenderObservable.add(() => {
-        if (leftJoystick.pressed) {
-            sphereLeft.position.y += leftJoystick.deltaPosition.y;
-            sphereLeft.position.x += leftJoystick.deltaPosition.x;
-
-            // var volumeDistance = BABYLON.Vector3.DistanceSquared(sphereLeft.position.y, volumeAntennaPosition);
-
-            // oscillator.frequency.setTargetAtTime(100, context.currentTime, 0.01);
-            // gainNode.gain.setTargetAtTime(calculateGain(volumeDistance), context.currentTime + 1, 0.01);
-        }
-        if (rightJoystick.pressed) {
-            sphereRight.position.y += rightJoystick.deltaPosition.y;
-            sphereRight.position.x += rightJoystick.deltaPosition.x;
-            var pitchDistance = BABYLON.Vector3.DistanceSquared(new BABYLON.Vector3(0, 0, 0), pitchAntennaPosition);
-
-            // var volumeDistance = BABYLON.Vector3.DistanceSquared(new BABYLON.Vector3(1, 1, 0), volumeAntennaPosition);
-
-            // oscillator.frequency.setTargetAtTime(calculateFrequency(pitchDistance), context.currentTime, 0.01);
-            // gainNode.gain.setTargetAtTime(calculateGain(volumeDistance), context.currentTime, 0.01);
-        }
-    });
-
-    // Create button to toggle joystick overlay canvas
-    var btn = document.createElement('button');
-    btn.innerText = 'Enable/Disable Joystick';
-    btn.style.zIndex = 10;
-    btn.style.position = 'absolute';
-    btn.style.bottom = '50px';
-    btn.style.right = '0px';
-    document.body.appendChild(btn);
-
-    // Button toggle logic
-    btn.onclick = () => {
-        if (BABYLON.VirtualJoystick.Canvas.style.zIndex == '-1') {
-            BABYLON.VirtualJoystick.Canvas.style.zIndex = '4';
-        } else {
-            BABYLON.VirtualJoystick.Canvas.style.zIndex = '-1';
-        }
-    };
-
-    // Dispose button on rerun
-    scene.onDisposeObservable.add(() => {
-        BABYLON.VirtualJoystick.Canvas.style.zIndex = '-1';
-        document.body.removeChild(btn);
     });
 
     return scene;
@@ -231,3 +139,6 @@ engine.runRenderLoop(function () {
 window.addEventListener('resize', function () {
     engine.resize();
 });
+
+// Helper
+const map = (value, x1, y1, x2, y2) => ((value - x1) * (y2 - x2)) / (y1 - x1) + x2;
