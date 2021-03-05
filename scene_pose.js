@@ -104,98 +104,13 @@ const createScene = async function () {
         if (results.length > 0) {
             poses = results[0].pose;
 
-            rightPosX = map(poses.rightWrist.x, 100, 255, 0.05, 0.8);
-            rightPosY = map(poses.rightWrist.y, 255, 0, 1, 1.8);
-            leftPosX = map(poses.leftWrist.x, 100, 255, 0.05, 0.8);
-            leftPosY = map(poses.leftWrist.y, 255, 0, 1, 1.8);
+            posX = map(poses.rightWrist.x, 100, 255, 0.05, 0.8);
+            posY = map(poses.leftWrist.y, 255, 0, 0.8, 1.8);
 
-            sphereRight.position.x = rightPosX;
-            sphereRight.position.y = rightPosY;
-            sphereLeft.position.x = leftPosX;
-            sphereLeft.position.y = leftPosY;
-
-            if (soundPlaying) {
-                setFrequency();
-                setGain();
-            }
+            sphereRight.position.x = posX;
+            sphereLeft.position.y = posY;
         }
     });
-
-    // ------ SOUND ------
-
-    // Create new Audio Context
-    var context = new AudioContext();
-    oscillator = null;
-    gainNode = context.createGain();
-    gainNode.gain.value = 0.5;
-    var soundPlaying = false;
-
-    // Calculate frequency relative to PitchAntenna
-    var calculateFrequency = function (distance) {
-        var minFrequency = 131;
-        maxFrequency = 494;
-
-        var pitchSensitivity = 10;
-
-        return Math.exp(-distance * pitchSensitivity) * (maxFrequency - minFrequency) + minFrequency;
-    };
-
-    var calculateGain = function (distance) {
-        var minGain = 0;
-        maxGain = 1;
-
-        var gainSensitivity = 5;
-
-        return Math.exp(-distance * gainSensitivity) * (maxGain - minGain) + minGain;
-    };
-
-    var setFrequency = () => {
-        pitchDistance = BABYLON.Vector3.DistanceSquared(sphereRight.position, pitchAntennaPosition);
-        oscillator.frequency.setTargetAtTime(calculateFrequency(pitchDistance), context.currentTime, 0.01);
-    };
-
-    var setGain = () => {
-        var volumeDistance = BABYLON.Vector3.DistanceSquared(sphereLeft.position, volumeAntennaPosition);
-        gainNode.gain.setTargetAtTime(1 - calculateGain(volumeDistance), context.currentTime, 0.01);
-    };
-
-    // GUI
-    var advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI('UI');
-
-    var button1 = BABYLON.GUI.Button.CreateSimpleButton('but1', 'Start sound');
-    button1.width = '150px';
-    button1.height = '40px';
-    button1.color = 'black';
-    button1.background = 'white';
-    button1.onPointerUpObservable.add(function () {
-        context.resume().then(() => {
-            soundPlaying = true;
-            oscillator = context.createOscillator();
-            setFrequency();
-            setGain();
-
-            console.log('pitchAntennaPosition: ', pitchAntennaPosition);
-            oscillator.connect(gainNode);
-            gainNode.connect(context.destination);
-            oscillator.start(context.currentTime);
-        });
-    });
-    advancedTexture.addControl(button1);
-
-    var button2 = BABYLON.GUI.Button.CreateSimpleButton('but1', 'Stop sound');
-    button2.width = '150px';
-    button2.height = '40px';
-    button2.color = 'black';
-    button2.background = 'white';
-    button2.top = 50;
-    button2.onPointerUpObservable.add(function () {
-        if (oscillator) {
-            soundPlaying = false;
-            oscillator.stop(context.currentTime);
-            oscillator.disconnect();
-        }
-    });
-    advancedTexture.addControl(button2);
 
     return scene;
 };
