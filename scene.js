@@ -86,7 +86,7 @@ const createScene = async function () {
     let sphereLeft = BABYLON.Mesh.CreateSphere('sphereLeft', 16, 0.1);
     sphereLeft.position.x = -0.32;
     sphereLeft.position.y = 1.1;
-    sphereLeft.position.z = -0.1;
+    sphereLeft.position.z = -0.03;
     let sphereLeftMat = new BABYLON.StandardMaterial('sphereMat', scene);
     sphereLeftMat.diffuseColor = new BABYLON.Color3(1, 0.5, 0.5);
     sphereLeft.material = sphereLeftMat;
@@ -106,7 +106,7 @@ const createScene = async function () {
 
             rightPosX = map(poses.rightWrist.x, 100, 255, 0.05, 0.8);
             rightPosY = map(poses.rightWrist.y, 255, 0, 1, 1.8);
-            leftPosX = map(poses.leftWrist.x, 100, 255, 0.05, 0.8);
+            leftPosX = map(poses.leftWrist.x, 100, 255, -0.25, -0.1);
             leftPosY = map(poses.leftWrist.y, 255, 0, 1, 1.8);
 
             sphereRight.position.x = rightPosX;
@@ -132,8 +132,8 @@ const createScene = async function () {
 
     // Calculate frequency relative to PitchAntenna
     var calculateFrequency = function (distance) {
-        var minFrequency = 131;
-        maxFrequency = 494;
+        var minFrequency = 131; // C3
+        maxFrequency = 494; // B4
 
         var pitchSensitivity = 10;
 
@@ -144,7 +144,7 @@ const createScene = async function () {
         var minGain = 0;
         maxGain = 1;
 
-        var gainSensitivity = 5;
+        var gainSensitivity = 1;
 
         return Math.exp(-distance * gainSensitivity) * (maxGain - minGain) + minGain;
     };
@@ -173,8 +173,6 @@ const createScene = async function () {
             oscillator = context.createOscillator();
             setFrequency();
             setGain();
-
-            console.log('pitchAntennaPosition: ', pitchAntennaPosition);
             oscillator.connect(gainNode);
             gainNode.connect(context.destination);
             oscillator.start(context.currentTime);
@@ -224,5 +222,5 @@ window.addEventListener('resize', function () {
     engine.resize();
 });
 
-// Helper
+// Helper function
 const map = (value, x1, y1, x2, y2) => ((value - x1) * (y2 - x2)) / (y1 - x1) + x2;
