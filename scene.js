@@ -18,12 +18,17 @@ const createScene = async function () {
     camera.setTarget(new BABYLON.Vector3(0, 1.4, 0));
     camera.attachControl(canvas, true);
 
-    let hemisphericLight = new BABYLON.HemisphericLight('light1', new BABYLON.Vector3(0, 10, 0), scene);
-    hemisphericLight.intensity = 1;
-    let light = new BABYLON.PointLight('spotLight', new BABYLON.Vector3(0, 1.2, -0.2), scene);
-    light.intensity = 0.2;
+    let light = new BABYLON.SpotLight(
+        'spotLight',
+        new BABYLON.Vector3(0, 1.5, -0.3),
+        new BABYLON.Vector3(0, -1, 0),
+        Math.PI / 1.3,
+        2,
+        scene
+    );
+    light.intensity = 4;
 
-    scene.clearColor = new BABYLON.Color3(0.1, 0.1, 0.1);
+    scene.clearColor = new BABYLON.Color3(0.0, 0.0, 0.0);
 
     var pitchAntennaPosition = new BABYLON.Vector3();
     var volumeAntennaPosition = new BABYLON.Vector3();
@@ -36,7 +41,7 @@ const createScene = async function () {
 
     // ------- FILM CLIP ON PLANE -------
     var videoPlane = BABYLON.MeshBuilder.CreatePlane('plane', { width: 8, height: 4.5 }, scene);
-    videoPlane.position = new BABYLON.Vector3(0, 2, 6);
+    videoPlane.position = new BABYLON.Vector3(0, 1.7, 5);
 
     var videoMaterial = new BABYLON.StandardMaterial('texture1', scene);
 
@@ -82,22 +87,45 @@ const createScene = async function () {
         console.log('model Loaded');
     }
 
-    // ------- SPHERES -------
-    let sphereLeft = BABYLON.Mesh.CreateSphere('sphereLeft', 16, 0.1);
-    sphereLeft.position.x = -0.32;
-    sphereLeft.position.y = 1.1;
-    sphereLeft.position.z = -0.03;
-    let sphereLeftMat = new BABYLON.StandardMaterial('sphereMat', scene);
-    sphereLeftMat.diffuseColor = new BABYLON.Color3(1, 0.5, 0.5);
-    sphereLeft.material = sphereLeftMat;
+    // ------- PARTICLES -------
 
-    let sphereRight = BABYLON.Mesh.CreateSphere('sphereRight', 16, 0.1);
-    sphereRight.position.x = 0.17;
-    sphereRight.position.y = 1.1;
-    sphereRight.position.z = -0.1;
-    let sphereRightMat = new BABYLON.StandardMaterial('sphereMat', scene);
-    sphereRightMat.diffuseColor = new BABYLON.Color3(0.5, 0.5, 1);
-    sphereRight.material = sphereRightMat;
+    const particleSystemRight = new BABYLON.ParticleSystem('particles', 1500, scene);
+    particleSystemRight.particleTexture = new BABYLON.Texture('https://www.babylonjs.com/assets/Flare.png', scene);
+    particleSystemRight.minEmitBox = new BABYLON.Vector3(-0.01, 0, -0.01); // minimum box dimensions
+    particleSystemRight.emitter = new BABYLON.Vector3(0, 1, -0.03); // the point at the top of the fountain
+    particleSystemRight.maxEmitBox = new BABYLON.Vector3(0.01, 0, 0.01); // maximum box dimensions
+    particleSystemRight.color1 = new BABYLON.Color4(1.0, 0.65, 0, 1.0);
+    particleSystemRight.blendMode = BABYLON.ParticleSystem.BLENDMODE_ONEONE;
+    particleSystemRight.minSize = 0.005;
+    particleSystemRight.maxSize = 0.03;
+    particleSystemRight.minLifeTime = 0.1;
+    particleSystemRight.maxLifeTime = 0.2;
+    particleSystemRight.emitRate = 300;
+    particleSystemRight.direction1 = new BABYLON.Vector3(1, 1, 2);
+    particleSystemRight.direction2 = new BABYLON.Vector3(-1, -1, -2);
+    particleSystemRight.minEmitPower = 0.1;
+    particleSystemRight.maxEmitPower = 0.4;
+    particleSystemRight.updateSpeed = 0.002;
+    particleSystemRight.start();
+
+    const particleSystemLeft = new BABYLON.ParticleSystem('particles', 1500, scene);
+    particleSystemLeft.particleTexture = new BABYLON.Texture('https://www.babylonjs.com/assets/Flare.png', scene);
+    particleSystemLeft.emitter = new BABYLON.Vector3(0, 1, -0.03); // the point at the top of the fountain
+    particleSystemLeft.minEmitBox = new BABYLON.Vector3(-0.01, 0, -0.01); // minimum box dimensions
+    particleSystemLeft.maxEmitBox = new BABYLON.Vector3(0.01, 0, 0.01); // maximum box dimensions
+    particleSystemLeft.color1 = new BABYLON.Color4(1.0, 0.2, 0, 1.0);
+    particleSystemLeft.blendMode = BABYLON.ParticleSystem.BLENDMODE_ONEONE;
+    particleSystemLeft.minSize = 0.005;
+    particleSystemLeft.maxSize = 0.03;
+    particleSystemLeft.minLifeTime = 0.1;
+    particleSystemLeft.maxLifeTime = 0.2;
+    particleSystemLeft.emitRate = 300;
+    particleSystemLeft.direction1 = new BABYLON.Vector3(1, 1, 2);
+    particleSystemLeft.direction2 = new BABYLON.Vector3(-1, -1, -2);
+    particleSystemLeft.minEmitPower = 0.1;
+    particleSystemLeft.maxEmitPower = 0.4;
+    particleSystemLeft.updateSpeed = 0.002;
+    particleSystemLeft.start();
 
     // Listen to new 'pose' events
     poseNet.on('pose', function (results) {
@@ -109,10 +137,10 @@ const createScene = async function () {
             leftPosX = map(poses.leftWrist.x, 100, 255, -0.25, -0.1);
             leftPosY = map(poses.leftWrist.y, 255, 0, 1, 1.8);
 
-            sphereRight.position.x = rightPosX;
-            sphereRight.position.y = rightPosY;
-            sphereLeft.position.x = leftPosX;
-            sphereLeft.position.y = leftPosY;
+            particleSystemRight.emitter.x = rightPosX;
+            particleSystemRight.emitter.y = rightPosY;
+            particleSystemLeft.emitter.x = leftPosX;
+            particleSystemLeft.emitter.y = leftPosY;
 
             if (soundPlaying) {
                 setFrequency();
@@ -133,7 +161,7 @@ const createScene = async function () {
     // Calculate frequency relative to PitchAntenna
     var calculateFrequency = function (distance) {
         var minFrequency = 131; // C3
-        maxFrequency = 494; // B4
+        maxFrequency = 988; // B5
 
         var pitchSensitivity = 10;
 
@@ -150,50 +178,41 @@ const createScene = async function () {
     };
 
     var setFrequency = () => {
-        pitchDistance = BABYLON.Vector3.DistanceSquared(sphereRight.position, pitchAntennaPosition);
+        pitchDistance = BABYLON.Vector3.DistanceSquared(particleSystemRight.emitter, pitchAntennaPosition);
         oscillator.frequency.setTargetAtTime(calculateFrequency(pitchDistance), context.currentTime, 0.01);
     };
 
     var setGain = () => {
-        var volumeDistance = BABYLON.Vector3.DistanceSquared(sphereLeft.position, volumeAntennaPosition);
+        var volumeDistance = BABYLON.Vector3.DistanceSquared(particleSystemLeft.emitter, volumeAntennaPosition);
         gainNode.gain.setTargetAtTime(1 - calculateGain(volumeDistance), context.currentTime, 0.01);
     };
 
     // GUI
     var advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI('UI');
 
-    var button1 = BABYLON.GUI.Button.CreateSimpleButton('but1', 'Start sound');
-    button1.width = '150px';
+    var button1 = BABYLON.GUI.Button.CreateSimpleButton('but1', '► ◼︎');
+    button1.width = '70px';
     button1.height = '40px';
-    button1.color = 'black';
+    button1.top = '250px';
     button1.background = 'white';
     button1.onPointerUpObservable.add(function () {
         context.resume().then(() => {
-            soundPlaying = true;
-            oscillator = context.createOscillator();
-            setFrequency();
-            setGain();
-            oscillator.connect(gainNode);
-            gainNode.connect(context.destination);
-            oscillator.start(context.currentTime);
+            if (!soundPlaying) {
+                soundPlaying = true;
+                oscillator = context.createOscillator();
+                oscillator.connect(gainNode);
+                gainNode.connect(context.destination);
+                oscillator.start(context.currentTime);
+            } else {
+                if (oscillator) {
+                    soundPlaying = false;
+                    oscillator.stop(context.currentTime);
+                    oscillator.disconnect();
+                }
+            }
         });
     });
     advancedTexture.addControl(button1);
-
-    var button2 = BABYLON.GUI.Button.CreateSimpleButton('but1', 'Stop sound');
-    button2.width = '150px';
-    button2.height = '40px';
-    button2.color = 'black';
-    button2.background = 'white';
-    button2.top = 50;
-    button2.onPointerUpObservable.add(function () {
-        if (oscillator) {
-            soundPlaying = false;
-            oscillator.stop(context.currentTime);
-            oscillator.disconnect();
-        }
-    });
-    advancedTexture.addControl(button2);
 
     return scene;
 };
